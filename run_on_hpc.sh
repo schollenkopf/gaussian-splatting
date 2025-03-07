@@ -27,6 +27,7 @@
 # -- Specify the distribution of the cores: on a single node --
 #BSUB -R "span[hosts=1]"
 # -- end of LSF options -- 
+#BSUB -gpu "num=1:mode=exclusive_process"
 
 module load colmap gcc/10
 
