@@ -23,7 +23,7 @@
 # -- estimated wall clock time (execution time): hh:mm -- 
 #BSUB -W 24:00 
 # -- Number of cores requested -- 
-#BSUB -n 1 
+#BSUB -n 4 
 # -- Specify the distribution of the cores: on a single node --
 #BSUB -R "span[hosts=1]"
 # -- end of LSF options -- 
