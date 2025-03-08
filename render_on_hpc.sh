@@ -30,6 +30,6 @@ pip install gaussian-splatting/submodules/fused-ssim
 pip install gaussian-splatting/submodules/simple-knn
 
 
-python gaussian-splatting/train.py -s first3
+python gaussian-splatting/render.py -m output/1efb10e5-9
 
 
