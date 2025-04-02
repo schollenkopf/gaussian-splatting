@@ -179,7 +179,7 @@ def training(
         )
 
         # Create light mask based on grayscale pixel intensity
-        light_mask = (gt_gray > (30 / 255)).float().unsqueeze(0)
+        light_mask = (gt_gray > (70 / 255)).float().unsqueeze(0)
         image = image * light_mask
         gt_image = gt_image * light_mask
         Ll1 = l1_loss(image, gt_image)
