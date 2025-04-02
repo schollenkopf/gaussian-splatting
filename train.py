@@ -180,7 +180,9 @@ def training(
 
         # Create light mask based on grayscale pixel intensity
         light_mask = (gt_gray > (20 / 255)).float().unsqueeze(0)
-        Ll1 = l1_loss(image * light_mask, gt_image * light_mask)
+        image = image * light_mask
+        gt_image = gt_image * light_mask
+        Ll1 = l1_loss(image, gt_image)
 
         # Ll1 = l1_loss(image, gt_image)
         if FUSED_SSIM_AVAILABLE:
