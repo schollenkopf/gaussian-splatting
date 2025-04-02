@@ -172,7 +172,14 @@ def training(
         # Loss
         gt_image = viewpoint_cam.original_image.cuda()
 
-        light_mask = (gt_image > 20 / 255).float()
+        gt_gray = (
+            0.2989 * gt_image[0, :, :]
+            + 0.5870 * gt_image[1, :, :]
+            + 0.1140 * gt_image[2, :, :]
+        )
+
+        # Create light mask based on grayscale pixel intensity
+        light_mask = (gt_gray > (20 / 255)).float().unsqueeze(0)
         Ll1 = l1_loss(image * light_mask, gt_image * light_mask)
 
         # Ll1 = l1_loss(image, gt_image)
