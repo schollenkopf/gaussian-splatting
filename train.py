@@ -22,6 +22,8 @@ from tqdm import tqdm
 from utils.image_utils import psnr
 from argparse import ArgumentParser, Namespace
 from arguments import ModelParams, PipelineParams, OptimizationParams
+from PIL import Image
+import numpy as np
 
 try:
     from torch.utils.tensorboard import SummaryWriter
@@ -80,6 +82,20 @@ def training(
     depth_l1_weight = get_expon_lr_func(
         opt.depth_l1_weight_init, opt.depth_l1_weight_final, max_steps=opt.iterations
     )
+
+    viewpoint_stack = scene.getTrainCameras().copy()
+    mask_list = {}
+    for idx in range(len(viewpoint_stack)):
+        viewpoint_cam = viewpoint_stack.pop(idx)
+        image = viewpoint_cam.original_image
+        image_name = viewpoint_cam.image_name
+        image_mask = Image.open(
+            os.path.join(dataset.source_path, "image_masks", image_name)
+        )
+        resized_mask_PIL = image_mask.resize(viewpoint_cam.resolution)
+        resized_mask = torch.from_numpy(np.array(resized_mask_PIL)) / 255.0 + 0.5
+        mask = resized_mask.clamp(0.5, 1.5).to("cuda")
+        mask_list[idx] = mask
 
     viewpoint_stack = scene.getTrainCameras().copy()
     viewpoint_indices = list(range(len(viewpoint_stack)))
@@ -169,19 +185,10 @@ def training(
             alpha_mask = viewpoint_cam.alpha_mask.cuda()
             image *= alpha_mask
 
+        # Apply the L-channel as a brightness mask
+        image *= mask_list[rand_idx]
         # Loss
         gt_image = viewpoint_cam.original_image.cuda()
-
-        gt_gray = (
-            0.2989 * gt_image[0, :, :]
-            + 0.5870 * gt_image[1, :, :]
-            + 0.1140 * gt_image[2, :, :]
-        )
-
-        # Create light mask based on grayscale pixel intensity
-        light_mask = (gt_gray > (100 / 255)).float().unsqueeze(0)
-        image = image * light_mask
-        gt_image = gt_image * light_mask
         Ll1 = l1_loss(image, gt_image)
 
         # Ll1 = l1_loss(image, gt_image)
