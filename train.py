@@ -205,6 +205,9 @@ def training(
             torchvision.utils.save_image(
                 image_masked, f"renders/{str(iteration)}_render_masked.png"
             )
+            torchvision.utils.save_image(
+                mask - 0.5, f"renders/{str(iteration)}_mask.png"
+            )
             # save_image(mask * 100, "mask.png")
 
         image = image_masked
