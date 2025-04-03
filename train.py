@@ -19,7 +19,6 @@ from scene import Scene, GaussianModel
 from utils.general_utils import safe_state, get_expon_lr_func
 import uuid
 from tqdm import tqdm
-from torch.utils import save_image
 from utils.image_utils import psnr
 from argparse import ArgumentParser, Namespace
 from arguments import ModelParams, PipelineParams, OptimizationParams
@@ -196,13 +195,13 @@ def training(
         image_lab[0, :, :] = (image_lab[0, :, :] * mask).clamp(0.0, 100.0)
         image_masked = (kornia.color.lab_to_rgb(image_lab)).clamp(0.0, 1.0)
 
-        if first_run:
-            first_run = False
-            save_image(image, "render.png")
-            # save_image(image_lab, "render_lab.png")
-            save_image(gt_image, "gt_image.png")
-            save_image(image_masked, "render_masked.png")
-            # save_image(mask * 100, "mask.png")
+        # if first_run:
+        #     first_run = False
+        #     save_image(image, "render.png")
+        #     # save_image(image_lab, "render_lab.png")
+        #     save_image(gt_image, "gt_image.png")
+        #     save_image(image_masked, "render_masked.png")
+        # save_image(mask * 100, "mask.png")
 
         image = image_masked
         # Loss
