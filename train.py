@@ -19,6 +19,7 @@ from scene import Scene, GaussianModel
 from utils.general_utils import safe_state, get_expon_lr_func
 import uuid
 from tqdm import tqdm
+from torch.utils import save_image
 from utils.image_utils import psnr
 from argparse import ArgumentParser, Namespace
 from arguments import ModelParams, PipelineParams, OptimizationParams
@@ -106,6 +107,7 @@ def training(
 
     progress_bar = tqdm(range(first_iter, opt.iterations), desc="Training progress")
     first_iter += 1
+    first_run = True
     for iteration in range(first_iter, opt.iterations + 1):
         if network_gui.conn == None:
             network_gui.try_connect()
@@ -192,7 +194,17 @@ def training(
         # Apply the L-channel as a brightness mask
         image_lab = kornia.color.rgb_to_lab(image * 255)
         image_lab[0, :, :] = image_lab[0, :, :] * mask
-        image = (kornia.color.lab_to_rgb(image) / 255).clamp(0.0, 1.0)
+        image_masked = (kornia.color.lab_to_rgb(image) / 255).clamp(0.0, 1.0)
+
+        if first_run:
+            first_run = False
+            save_image(image * 255, "render.png")
+            save_image(image_lab, "render_lab.png")
+            save_image(gt_image, "gt_image.png")
+            save_image(image_masked * 255, "render_masked.png")
+            save_image(mask * 100, "mask.png")
+
+        image = image_masked
         # Loss
         gt_image = viewpoint_cam.original_image.cuda()
         Ll1 = l1_loss(image, gt_image)
