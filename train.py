@@ -192,17 +192,17 @@ def training(
             image *= alpha_mask
 
         # Apply the L-channel as a brightness mask
-        image_lab = kornia.color.rgb_to_lab(image * 255)
-        image_lab[0, :, :] = image_lab[0, :, :] * mask
-        image_masked = (kornia.color.lab_to_rgb(image) / 255).clamp(0.0, 1.0)
+        image_lab = kornia.color.rgb_to_lab(image)
+        image_lab[0, :, :] = (image_lab[0, :, :] * mask).clamp(0.0, 100.0)
+        image_masked = (kornia.color.lab_to_rgb(image)).clamp(0.0, 1.0)
 
         if first_run:
             first_run = False
-            save_image(image * 255, "render.png")
-            save_image(image_lab, "render_lab.png")
+            save_image(image, "render.png")
+            # save_image(image_lab, "render_lab.png")
             save_image(gt_image, "gt_image.png")
-            save_image(image_masked * 255, "render_masked.png")
-            save_image(mask * 100, "mask.png")
+            save_image(image_masked, "render_masked.png")
+            # save_image(mask * 100, "mask.png")
 
         image = image_masked
         # Loss
