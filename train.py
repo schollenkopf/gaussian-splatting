@@ -186,7 +186,7 @@ def training(
             image *= alpha_mask
 
         # Apply the L-channel as a brightness mask
-        image *= mask_list[rand_idx]
+        image = (image * mask_list[rand_idx]).clamp(0.0, 1.0)
         # Loss
         gt_image = viewpoint_cam.original_image.cuda()
         Ll1 = l1_loss(image, gt_image)
