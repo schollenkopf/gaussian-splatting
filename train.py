@@ -195,7 +195,7 @@ def training(
         image_lab = kornia.color.rgb_to_lab(image)
         image_lab[0, :, :] = (image_lab[0, :, :] * mask).clamp(0.0, 100.0)
         image_masked = (kornia.color.lab_to_rgb(image_lab)).clamp(0.0, 1.0)
-
+        gt_image = viewpoint_cam.original_image.cuda()
         if first_run:
             first_run = False
             torchvision.utils.save_image(image, "render.png")
@@ -206,7 +206,7 @@ def training(
 
         image = image_masked
         # Loss
-        gt_image = viewpoint_cam.original_image.cuda()
+
         Ll1 = l1_loss(image, gt_image)
 
         # Ll1 = l1_loss(image, gt_image)
