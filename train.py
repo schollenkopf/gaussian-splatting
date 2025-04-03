@@ -25,6 +25,7 @@ from arguments import ModelParams, PipelineParams, OptimizationParams
 from PIL import Image
 import kornia
 import numpy as np
+import torchvision
 
 try:
     from torch.utils.tensorboard import SummaryWriter
@@ -195,13 +196,13 @@ def training(
         image_lab[0, :, :] = (image_lab[0, :, :] * mask).clamp(0.0, 100.0)
         image_masked = (kornia.color.lab_to_rgb(image_lab)).clamp(0.0, 1.0)
 
-        # if first_run:
-        #     first_run = False
-        #     save_image(image, "render.png")
-        #     # save_image(image_lab, "render_lab.png")
-        #     save_image(gt_image, "gt_image.png")
-        #     save_image(image_masked, "render_masked.png")
-        # save_image(mask * 100, "mask.png")
+        if first_run:
+            first_run = False
+            torchvision.utils.save_image(image, "render.png")
+            # save_image(image_lab, "render_lab.png")
+            torchvision.utils.save_image(gt_image, "gt_image.png")
+            torchvision.utils.save_image(image_masked, "render_masked.png")
+            # save_image(mask * 100, "mask.png")
 
         image = image_masked
         # Loss
