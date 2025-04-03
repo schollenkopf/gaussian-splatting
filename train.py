@@ -87,7 +87,7 @@ def training(
 
     viewpoint_stack = scene.getTrainCameras().copy()
     mask_list = []
-
+    mask_name_list = []
     for viewpoint_cam in viewpoint_stack:
         image = viewpoint_cam.original_image
         image_name = viewpoint_cam.image_name
@@ -98,7 +98,9 @@ def training(
         resized_mask = torch.from_numpy(np.array(resized_mask_PIL)) / 255.0 + 0.5
         mask = resized_mask.clamp(0.5, 1.5).to("cuda")
         mask_list += mask
+        mask_name_list += image_name
     mask_list_og = mask_list
+    mask_name_list_og = mask_name_list
 
     viewpoint_stack = scene.getTrainCameras().copy()
     viewpoint_indices = list(range(len(viewpoint_stack)))
@@ -161,11 +163,15 @@ def training(
             viewpoint_stack = scene.getTrainCameras().copy()
             viewpoint_indices = list(range(len(viewpoint_stack)))
             mask_list = mask_list_og
+            mask_name_list = mask_name_list_og
         rand_idx = randint(0, len(viewpoint_indices) - 1)
         viewpoint_cam = viewpoint_stack.pop(rand_idx)
         vind = viewpoint_indices.pop(rand_idx)
         mask = mask_list.pop(rand_idx)
-
+        mask_name = mask_name_list.pop(rand_idx)
+        if iteration < 50:
+            print(mask_name)
+            print(viewpoint_cam.image_name)
         # Render
         if (iteration - 1) == debug_from:
             pipe.debug = True
@@ -205,9 +211,9 @@ def training(
             torchvision.utils.save_image(
                 image_masked, f"renders/{str(iteration)}_render_masked.png"
             )
-            torchvision.utils.save_image(
-                mask - 0.5, f"renders/{str(iteration)}_mask.png"
-            )
+            # torchvision.utils.save_image(
+            #     mask - 0.5, f"renders/{str(iteration)}_mask.png"
+            # )
             # save_image(mask * 100, "mask.png")
 
         image = image_masked
