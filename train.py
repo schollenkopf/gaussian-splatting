@@ -98,7 +98,7 @@ def training(
         resized_mask = torch.from_numpy(np.array(resized_mask_PIL)) / 255.0 + 0.5
         mask = resized_mask.clamp(0.5, 1.5).to("cuda")
         mask_list += mask
-        mask_name_list += image_name
+        mask_name_list += [image_name]
     mask_list_og = mask_list
     mask_name_list_og = mask_name_list
 
