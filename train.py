@@ -23,6 +23,7 @@ from utils.image_utils import psnr
 from argparse import ArgumentParser, Namespace
 from arguments import ModelParams, PipelineParams, OptimizationParams
 from PIL import Image
+import kornia
 import numpy as np
 
 try:
@@ -84,9 +85,9 @@ def training(
     )
 
     viewpoint_stack = scene.getTrainCameras().copy()
-    mask_list = {}
-    for idx in range(len(viewpoint_stack)):
-        viewpoint_cam = viewpoint_stack.pop(idx)
+    mask_list = []
+
+    for viewpoint_cam in viewpoint_stack:
         image = viewpoint_cam.original_image
         image_name = viewpoint_cam.image_name
         image_mask = Image.open(
@@ -95,7 +96,8 @@ def training(
         resized_mask_PIL = image_mask.resize(viewpoint_cam.resolution)
         resized_mask = torch.from_numpy(np.array(resized_mask_PIL)) / 255.0 + 0.5
         mask = resized_mask.clamp(0.5, 1.5).to("cuda")
-        mask_list[idx] = mask
+        mask_list += mask
+    mask_list_og = mask_list
 
     viewpoint_stack = scene.getTrainCameras().copy()
     viewpoint_indices = list(range(len(viewpoint_stack)))
@@ -156,9 +158,11 @@ def training(
         if not viewpoint_stack:
             viewpoint_stack = scene.getTrainCameras().copy()
             viewpoint_indices = list(range(len(viewpoint_stack)))
+            mask_list = mask_list_og
         rand_idx = randint(0, len(viewpoint_indices) - 1)
         viewpoint_cam = viewpoint_stack.pop(rand_idx)
         vind = viewpoint_indices.pop(rand_idx)
+        mask = mask_list.pop(rand_idx)
 
         # Render
         if (iteration - 1) == debug_from:
@@ -186,7 +190,9 @@ def training(
             image *= alpha_mask
 
         # Apply the L-channel as a brightness mask
-        image = (image * mask_list[rand_idx]).clamp(0.0, 1.0)
+        image_lab = kornia.color.rgb_to_lab(image * 255)
+        image_lab[0, :, :] = image_lab[0, :, :] * mask
+        image = (kornia.color.lab_to_rgb(image) / 255).clamp(0.0, 1.0)
         # Loss
         gt_image = viewpoint_cam.original_image.cuda()
         Ll1 = l1_loss(image, gt_image)
