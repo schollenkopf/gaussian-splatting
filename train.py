@@ -196,12 +196,15 @@ def training(
         image_lab[0, :, :] = (image_lab[0, :, :] * mask).clamp(0.0, 100.0)
         image_masked = (kornia.color.lab_to_rgb(image_lab)).clamp(0.0, 1.0)
         gt_image = viewpoint_cam.original_image.cuda()
-        if first_run:
-            first_run = False
-            torchvision.utils.save_image(image, "render.png")
+        if iteration % 1000 == 0:
+            torchvision.utils.save_image(image, f"renders/{str(iteration)}_render.png")
             # save_image(image_lab, "render_lab.png")
-            torchvision.utils.save_image(gt_image, "gt_image.png")
-            torchvision.utils.save_image(image_masked, "render_masked.png")
+            torchvision.utils.save_image(
+                gt_image, f"renders/{str(iteration)}_gt_image.png"
+            )
+            torchvision.utils.save_image(
+                image_masked, f"renders/{str(iteration)}_render_masked.png"
+            )
             # save_image(mask * 100, "mask.png")
 
         image = image_masked
