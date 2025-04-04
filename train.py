@@ -94,8 +94,10 @@ def training(
             os.path.join(dataset.source_path, "image_masks", image_name)
         )
         resized_mask_PIL = image_mask.resize(viewpoint_cam.resolution)
-        resized_mask = torch.from_numpy(np.array(resized_mask_PIL)) / 255.0 + 0.5
-        mask = resized_mask.clamp(0.5, 1.5).to("cuda")
+        resized_mask = (
+            torch.from_numpy(np.array(resized_mask_PIL)) / 255.0 - 0.5
+        ) * 200
+        mask = resized_mask.clamp(-100, 100).to("cuda")
         mask_list += [mask]
     mask_list_og = mask_list.copy()
 
@@ -192,7 +194,7 @@ def training(
 
         # Apply the L-channel as a brightness mask
         image_lab = kornia.color.rgb_to_lab(image)
-        image_lab[0, :, :] = (image_lab[0, :, :] * mask).clamp(0.0, 100.0)
+        image_lab[0, :, :] = (image_lab[0, :, :] + mask).clamp(0.0, 100.0)
         image_masked = (kornia.color.lab_to_rgb(image_lab)).clamp(0.0, 1.0)
         gt_image = viewpoint_cam.original_image.cuda()
         if iteration % 1000 == 0:
