@@ -87,7 +87,6 @@ def training(
 
     viewpoint_stack = scene.getTrainCameras().copy()
     mask_list = []
-    mask_name_list = []
     for viewpoint_cam in viewpoint_stack:
         image = viewpoint_cam.original_image
         image_name = viewpoint_cam.image_name
@@ -98,7 +97,7 @@ def training(
         resized_mask = torch.from_numpy(np.array(resized_mask_PIL)) / 255.0 + 0.5
         mask = resized_mask.clamp(0.5, 1.5).to("cuda")
         mask_list += [mask]
-    mask_list_og = mask_list
+    mask_list_og = mask_list.copy()
 
     viewpoint_stack = scene.getTrainCameras().copy()
     viewpoint_indices = list(range(len(viewpoint_stack)))
@@ -160,7 +159,7 @@ def training(
         if not viewpoint_stack:
             viewpoint_stack = scene.getTrainCameras().copy()
             viewpoint_indices = list(range(len(viewpoint_stack)))
-            mask_list = mask_list_og
+            mask_list = mask_list_og.copy()
         rand_idx = randint(0, len(viewpoint_indices) - 1)
         viewpoint_cam = viewpoint_stack.pop(rand_idx)
         vind = viewpoint_indices.pop(rand_idx)
